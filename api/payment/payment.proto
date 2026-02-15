@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package payment;
+
+option go_package = "./api/payment;paymentpb";
+
+// Сервис платежей
+service PaymentService {
+    // ProcessPayment обрабатывает платёж для заказа
+    rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+}
+
+message ProcessPaymentRequest {
+    string order_id = 1;
+    double amount = 2;
+    string method = 3;
+}
+
+message ProcessPaymentResponse {
+    bool success = 1;
+    string transaction_id = 2;
+    string message = 3;
+}

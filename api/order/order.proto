@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "./api/order;orderpb";
+
+// Сервис заказов
+service OrderService {
+    // CreateOrder создает новый заказ
+    rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse);
+}
+
+message CreateOrderRequest {
+    string order_id  = 1;
+    string user_id = 2;
+    repeated string items = 3;
+    double total_amount = 4;
+    string payment_method = 5;
+}
+
+message CreateOrderResponse {
+    string order_id = 1;
+    string status = 2; // "pending", "confirmed", "failed"
+    string message = 3;
+}
