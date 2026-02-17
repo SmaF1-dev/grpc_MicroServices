@@ -18,7 +18,7 @@ type OrderServiceServer struct {
 }
 
 func NewOrderServiceServer(paymentAddr string) (*OrderServiceServer, error) {
-	conn, err := grpc.NewClient("localhost:50051", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(paymentAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
