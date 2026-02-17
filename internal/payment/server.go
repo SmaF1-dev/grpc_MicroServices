@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	payment "github.com/SmaF1-dev/grpc_MicroServices/api/payment"
+	"github.com/SmaF1-dev/grpc_MicroServices/internal/interceptor"
 	"github.com/SmaF1-dev/grpc_MicroServices/pkg/logger"
 	"google.golang.org/grpc"
 )
@@ -18,7 +19,9 @@ func Run(port int) error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.LoggingInterceptor),
+	)
 
 	paymentServiceServer := NewPaymentServiceServer()
 	payment.RegisterPaymentServiceServer(grpcServer, paymentServiceServer)

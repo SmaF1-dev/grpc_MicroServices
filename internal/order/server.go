@@ -8,6 +8,7 @@ import (
 	"syscall"
 
 	order "github.com/SmaF1-dev/grpc_MicroServices/api/order"
+	"github.com/SmaF1-dev/grpc_MicroServices/internal/interceptor"
 	"github.com/SmaF1-dev/grpc_MicroServices/internal/repository"
 	"github.com/SmaF1-dev/grpc_MicroServices/pkg/config"
 	"github.com/SmaF1-dev/grpc_MicroServices/pkg/logger"
@@ -38,7 +39,9 @@ func Run() error {
 		return fmt.Errorf("failed to listen: %w", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(interceptor.LoggingInterceptor),
+	)
 
 	orderServiceServer, err := NewOrderServiceServer(paymentAddr, repo)
 	if err != nil {
