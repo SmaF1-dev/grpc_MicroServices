@@ -3,6 +3,8 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 func NewDB(host, port, user, password, dbname, sslmode string) (*sql.DB, error) {

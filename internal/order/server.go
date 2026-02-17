@@ -8,11 +8,31 @@ import (
 	"syscall"
 
 	order "github.com/SmaF1-dev/grpc_MicroServices/api/order"
+	"github.com/SmaF1-dev/grpc_MicroServices/internal/repository"
+	"github.com/SmaF1-dev/grpc_MicroServices/pkg/config"
 	"github.com/SmaF1-dev/grpc_MicroServices/pkg/logger"
 	"google.golang.org/grpc"
 )
 
-func Run(port int, paymentAddr string) error {
+func Run() error {
+	port := config.GetEnvAsInt("ORDER_PORT", 50052)
+	paymentAddr := config.GetEnv("PAYMENT_SERVICE_ADDR", "localhost:50051")
+
+	dbHost := config.GetEnv("DB_HOST", "localhost")
+	dbPort := config.GetEnv("DB_PORT", "5432")
+	dbUser := config.GetEnv("DB_USER", "postgres")
+	dbPass := config.GetEnv("DB_PASSWORD", "postgres")
+	dbName := config.GetEnv("DB_NAME", "orders")
+	dbSSL := config.GetEnv("DB_SSLMODE", "disable")
+
+	db, err := repository.NewDB(dbHost, dbPort, dbUser, dbPass, dbName, dbSSL)
+	if err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	defer db.Close()
+
+	repo := repository.NewPostgresOrderRepository(db)
+
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
 		return fmt.Errorf("failed to listen: %w", err)
@@ -20,7 +40,7 @@ func Run(port int, paymentAddr string) error {
 
 	grpcServer := grpc.NewServer()
 
-	orderServiceServer, err := NewOrderServiceServer(paymentAddr)
+	orderServiceServer, err := NewOrderServiceServer(paymentAddr, repo)
 	if err != nil {
 		return fmt.Errorf("failed to create order service: %w", err)
 	}
