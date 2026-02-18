@@ -63,6 +63,8 @@ func Run() error {
 	logger.Info("Shutting down Order Service...")
 	grpcServer.GracefulStop()
 
+	logger.Info("Total succesfully processed orders: %d", orderServiceServer.GetSuccessCount())
+
 	if err := orderServiceServer.Close(); err != nil {
 		logger.Error("Error closing payment client connection: %v", err)
 	}

@@ -2,6 +2,7 @@ package order
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	order "github.com/SmaF1-dev/grpc_MicroServices/api/order"
@@ -20,6 +21,8 @@ type OrderServiceServer struct {
 	paymentClient payment.PaymentServiceClient
 	conn          *grpc.ClientConn
 	repo          repository.OrderRepository
+	mu            sync.Mutex
+	successCount  int64
 }
 
 func NewOrderServiceServer(paymentAddr string, repo repository.OrderRepository) (*OrderServiceServer, error) {
@@ -41,6 +44,12 @@ func (s *OrderServiceServer) Close() error {
 		return s.conn.Close()
 	}
 	return nil
+}
+
+func (s *OrderServiceServer) GetSuccessCount() int64 {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.successCount
 }
 
 func (s *OrderServiceServer) CreateOrder(ctx context.Context, req *order.CreateOrderRequest) (*order.CreateOrderResponse, error) {
@@ -103,6 +112,11 @@ func (s *OrderServiceServer) CreateOrder(ctx context.Context, req *order.CreateO
 	}
 
 	_ = s.repo.UpdateStatus(req.OrderId, "confirmed", paymentResp.TransactionId)
+
+	s.mu.Lock()
+	s.successCount++
+	s.mu.Unlock()
+
 	logger.Info("Order %s created succesfully, transaction: %s", req.OrderId, paymentResp.TransactionId)
 	return &order.CreateOrderResponse{
 		OrderId: req.OrderId,
