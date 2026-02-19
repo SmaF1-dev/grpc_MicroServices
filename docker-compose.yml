@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: grpc_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: orders
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data\
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - grpc_network
+
+
+  payment:
+    build: 
+      context: .
+      dockerfile: Dockerfile.payment
+    container_name: grpc_payment
+    environment:
+      PAYMENT_PORT: 50051
+    ports:
+      - "50051:50051"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - grpc_network
+
+  order:
+    build:
+      context: .
+      dockerfile: Dockerfile.order
+    container_name: grpc_order
+    environment:
+      ORDER_PORT: 50052
+      PAYMENT_SERVICE_ADDR: payment:50051
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: orders
+      DB_SSLMODE: disable
+    ports:
+      - "50052:50052"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - grpc_network
+
+volumes:
+  postgres_data:
+
+networks:
+  grpc_network:
