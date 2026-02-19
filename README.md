@@ -1,5 +1,6 @@
 # grpc_MicroServices
-### Pet-project for practical use:
+A pet project for a microservices development practice.
+### The pet-project uses:
 - gRPC connection
 - ProtoBuf
 - Mutex
